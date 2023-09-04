@@ -3,7 +3,7 @@ from github import Github, GithubException
 # Plugin Manifest
 manifest = {
     "name": "GitGPT",
-    "description": "A plugin that allows ChatGPT to create repos and push code to GitHub.",
+    "description": "A plugin that allows ChatGPT to create repos and push code to your GitHub.",
     "version": "0.1",
     "options": [
         {
