@@ -1,7 +1,7 @@
 {
- "name": "GitGPT",
-    "description": "A plugin that allows ChatGPT to create repos and push code to your GitHub.",
-    "version": "0.1",
+  "name": "GitGPT",
+  "description": "A plugin that allows ChatGPT to create repos and push code to your GitHub.",
+  "version": "0.1",
   "functions": [
     {
       "name": "createRepo",
