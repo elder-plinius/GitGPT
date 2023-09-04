@@ -1,18 +1,18 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import the CORS library
+from flask_cors import CORS
 import requests
 from dotenv import load_dotenv
 import os
+import logging
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Read GitHub PAT from environment variable
-github_pat = os.getenv('GITHUB_PAT')
-
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
-
 
 @app.route('/createRepo', methods=['POST'])
 def create_repo():
@@ -50,7 +50,7 @@ def edit_file():
 
 @app.route('/pushCode', methods=['POST'])
 def push_code():
-    global github_pat
+    github_pat = request.json.get('githubPAT')
     repo_name = request.json.get('repoName')
     file_path = request.json.get('filePath')
     content = request.json.get('content')
@@ -78,7 +78,6 @@ def push_code():
         return jsonify({"message": "Code pushed successfully", "data": response.json()}), 200
     else:
         return jsonify({"message": "Failed to push code", "error": response.json()}), response.status_code
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000)
