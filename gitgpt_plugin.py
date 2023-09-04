@@ -6,7 +6,7 @@ import os
 import logging
 
 # Initialize logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,6 +16,7 @@ CORS(app)  # Enable CORS for all routes
 
 @app.route('/createRepo', methods=['POST'])
 def create_repo():
+    logging.debug("Entered /createRepo")
     github_pat = request.json.get('githubPAT')
     repo_name = request.json.get('repoName', 'defaultRepoName')
     
@@ -26,12 +27,15 @@ def create_repo():
     response = requests.post(url, headers=headers, json=payload)
     
     if response.status_code == 201:
+        logging.info("Repo created successfully")
         return jsonify({"message": "Repo created successfully", "data": response.json()}), 201
     else:
+        logging.error(f"Failed to create repo: {response.json()}")
         return jsonify({"message": "Failed to create repo", "error": response.json()}), response.status_code
 
 @app.route('/editFile', methods=['POST'])
 def edit_file():
+    logging.debug("Entered /editFile")
     github_pat = request.json.get('githubPAT')
     repo_name = request.json.get('repoName')
     file_path = request.json.get('filePath')
@@ -44,12 +48,15 @@ def edit_file():
     response = requests.put(url, headers=headers, json=payload)
     
     if response.status_code == 200:
+        logging.info("File edited successfully")
         return jsonify({"message": "File edited successfully", "data": response.json()}), 200
     else:
+        logging.error(f"Failed to edit file: {response.json()}")
         return jsonify({"message": "Failed to edit file", "error": response.json()}), response.status_code
 
 @app.route('/pushCode', methods=['POST'])
 def push_code():
+    logging.debug("Entered /pushCode")
     github_pat = request.json.get('githubPAT')
     repo_name = request.json.get('repoName')
     file_path = request.json.get('filePath')
@@ -62,6 +69,7 @@ def push_code():
     # Fetch the file to get its current SHA
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
+        logging.error(f"Failed to fetch file for SHA: {response.json()}")
         return jsonify({"message": "Failed to fetch file for SHA", "error": response.json()}), response.status_code
     
     file_sha = response.json().get('sha')
@@ -75,8 +83,10 @@ def push_code():
     response = requests.put(url, headers=headers, json=payload)
     
     if response.status_code == 200:
+        logging.info("Code pushed successfully")
         return jsonify({"message": "Code pushed successfully", "data": response.json()}), 200
     else:
+        logging.error(f"Failed to push code: {response.json()}")
         return jsonify({"message": "Failed to push code", "error": response.json()}), response.status_code
 
 if __name__ == '__main__':
