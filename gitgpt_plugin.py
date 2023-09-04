@@ -1,21 +1,31 @@
 from flask import Flask, request, jsonify
 import requests
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Read GitHub PAT from environment variable
+github_pat = os.getenv('GITHUB_PAT')
 
 app = Flask(__name__)
-
-GITHUB_API_BASE_URL = "https://api.github.com"
 
 @app.route('/createRepo', methods=['POST'])
 def create_repo():
     github_pat = request.json.get('githubPAT')
-    repo_name = request.json.get('repoName')
+    repo_name = request.json.get('repoName', 'defaultRepoName')
     
-    headers = {'Authorization': f'token {github_pat}'}
-    payload = {'name': repo_name}
+    url = "https://api.github.com/user/repos"
+    headers = {"Authorization": f"token {github_pat}"}
+    payload = {"name": repo_name}
     
-    response = requests.post(f"{GITHUB_API_BASE_URL}/user/repos", json=payload, headers=headers)
+    response = requests.post(url, headers=headers, json=payload)
     
-    return jsonify(response.json()), response.status_code
+    if response.status_code == 201:
+        return jsonify({"message": "Repo created successfully", "data": response.json()}), 201
+    else:
+        return jsonify({"message": "Failed to create repo", "error": response.json()}), response.status_code
 
 @app.route('/editFile', methods=['POST'])
 def edit_file():
@@ -24,65 +34,44 @@ def edit_file():
     file_path = request.json.get('filePath')
     content = request.json.get('content')
     
-    headers = {'Authorization': f'token {github_pat}'}
+    url = f"https://api.github.com/repos/{repo_name}/{file_path}"
+    headers = {"Authorization": f"token {github_pat}"}
+    payload = {"content": content}
     
-    # Fetch the file to get its SHA
-    response = requests.get(f"{GITHUB_API_BASE_URL}/repos/{repo_name}/contents/{file_path}", headers=headers)
-    file_sha = response.json().get('sha')
+    response = requests.put(url, headers=headers, json=payload)
     
-    payload = {'path': file_path, 'message': 'Edit file via GitGPT', 'content': content, 'sha': file_sha}
-    
-    response = requests.put(f"{GITHUB_API_BASE_URL}/repos/{repo_name}/contents/{file_path}", json=payload, headers=headers)
-    
-    return jsonify(response.json()), response.status_code
+    if response.status_code == 200:
+        return jsonify({"message": "File edited successfully", "data": response.json()}), 200
+    else:
+        return jsonify({"message": "Failed to edit file", "error": response.json()}), response.status_code
 
 @app.route('/pushCode', methods=['POST'])
 def push_code():
-    github_pat = request.json.get('githubPAT')
+    global github_pat
     repo_name = request.json.get('repoName')
     file_path = request.json.get('filePath')
-    new_content = request.json.get('newContent')
-    branch = request.json.get('branch', 'main')
+    content = request.json.get('content')
+    commit_message = request.json.get('commitMessage', 'Update via GitGPT')
     
-    headers = {'Authorization': f'token {github_pat}'}
+    url = f"https://api.github.com/repos/{repo_name}/contents/{file_path}"
+    headers = {"Authorization": f"token {github_pat}"}
     
-    # Step 1: Get latest commit SHA
-    response = requests.get(f"{GITHUB_API_BASE_URL}/repos/{repo_name}/git/refs/heads/{branch}", headers=headers)
-    latest_commit_sha = response.json()['object']['sha']
+    # Fetch the file to get its current SHA
+    response = requests.get(url, headers=headers)
+    file_sha = response.json().get('sha')
     
-    # Step 2: Get blob SHA
-    response = requests.get(f"{GITHUB_API_BASE_URL}/repos/{repo_name}/contents/{file_path}", headers=headers)
-    blob_sha = response.json()['sha']
-    
-    # Step 3: Create new tree
-    tree = [
-        {
-            "path": file_path,
-            "mode": "100644",
-            "type": "blob",
-            "sha": blob_sha,
-            "content": new_content
-        }
-    ]
-    payload = {"base_tree": latest_commit_sha, "tree": tree}
-    response = requests.post(f"{GITHUB_API_BASE_URL}/repos/{repo_name}/git/trees", json=payload, headers=headers)
-    tree_sha = response.json()['sha']
-    
-    # Step 4: Create new commit
     payload = {
-        "message": "Update via GitGPT",
-        "parents": [latest_commit_sha],
-        "tree": tree_sha
+        "message": commit_message,
+        "content": content.encode('utf-8').hex(),
+        "sha": file_sha
     }
-    response = requests.post(f"{GITHUB_API_BASE_URL}/repos/{repo_name}/git/commits", json=payload, headers=headers)
-    new_commit_sha = response.json()['sha']
     
-    # Step 5: Update reference
-    payload = {"sha": new_commit_sha}
-    response = requests.patch(f"{GITHUB_API_BASE_URL}/repos/{repo_name}/git/refs/heads/{branch}", json=payload, headers=headers)
+    response = requests.put(url, headers=headers, json=payload)
     
-    return jsonify(response.json()), response.status_code
-
+    if response.status_code == 200:
+        return jsonify({"message": "Code pushed successfully", "data": response.json()}), 200
+    else:
+        return jsonify({"message": "Failed to push code", "error": response.json()}), response.status_code
 
 if __name__ == '__main__':
-    app.run(port=3000)
+    app.run(host='0.0.0.0', port=3000)
