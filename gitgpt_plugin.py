@@ -15,7 +15,9 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-@app.route('/manifest.json')
+
+
+@app.route('/.well-known/ai-plugin.json', methods=['GET'])
 def serve_manifest():
     return send_from_directory('.', 'manifest.json')
 
