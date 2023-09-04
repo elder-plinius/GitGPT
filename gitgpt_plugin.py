@@ -14,6 +14,10 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+@app.route('/')
+def root():
+    return "GitGPT Plugin is running!"
+
 @app.route('/createRepo', methods=['POST'])
 def create_repo():
     logging.debug("Entered /createRepo")
