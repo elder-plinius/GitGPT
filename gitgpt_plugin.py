@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import the CORS library
 import requests
 from dotenv import load_dotenv
 import os
@@ -10,6 +11,8 @@ load_dotenv()
 github_pat = os.getenv('GITHUB_PAT')
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
 
 @app.route('/createRepo', methods=['POST'])
 def create_repo():
