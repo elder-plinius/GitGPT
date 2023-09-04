@@ -61,6 +61,9 @@ def push_code():
     
     # Fetch the file to get its current SHA
     response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        return jsonify({"message": "Failed to fetch file for SHA", "error": response.json()}), response.status_code
+    
     file_sha = response.json().get('sha')
     
     payload = {
@@ -75,6 +78,7 @@ def push_code():
         return jsonify({"message": "Code pushed successfully", "data": response.json()}), 200
     else:
         return jsonify({"message": "Failed to push code", "error": response.json()}), response.status_code
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000)
