@@ -1,0 +1,43 @@
+{
+  "schema_version": "v1",
+  "version": "1.0.0",
+  "name_for_human": "GitGPT Code Manager",
+  "name_for_model": "gitgpt",
+  "description_for_human": "Effortlessly manage your GitHub projects and push code directly to GitHub. Create, update, and review repositories all within the chat interface.",
+  "description_for_model": "A plugin tailored for GitHub, enabling seamless GitHub integration for code management, repository creation, and code reviews.",
+  "auth": {
+    "type": "oauth2",
+    "provider": "github"
+  },
+  "permissions": [
+    "read_code",
+    "write_code",
+    "manage_projects",
+    "push_to_github",
+    "create_repositories"
+  ],
+  "dependencies": [
+    "openapi_client",
+    "github_api_client",
+    "auth_plugin"
+  ],
+  "env": [
+    {
+      "name": "GITHUB_USERNAME",
+      "description": "Your GitHub username",
+      "required": true
+    },
+    {
+      "name": "GITHUB_PAT",
+      "description": "Your GitHub Personal Access Token",
+      "required": true
+    }
+  ],
+  "api": {
+    "type": "openapi",
+    "url": "http://localhost:5003/openapi.yaml"
+  },
+  "logo_url": "http://localhost:5003/logo.png",
+  "contact_email": "legal@example.com",
+  "legal_info_url": "http://example.com/legal"
+}
