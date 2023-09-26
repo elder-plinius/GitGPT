@@ -1,0 +1,93 @@
+openapi: 3.0.1
+info:
+  title: GitGPT Plugin
+  description: A plugin that allows the user to interact with Git repositories using ChatGPT. If you do not know the user's username, ask them first before making queries to the plugin.
+  version: 'v1'
+servers:
+  - url: http://localhost:5003
+paths:
+  /repos/{username}:
+    get:
+      operationId: getRepos
+      summary: Get the list of repositories
+      parameters:
+      - in: path
+        name: username
+        schema:
+            type: string
+        required: true
+        description: The name of the user.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getReposResponse'
+    post:
+      operationId: cloneRepo
+      summary: Clone a repository
+      parameters:
+      - in: path
+        name: username
+        schema:
+            type: string
+        required: true
+        description: The name of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/cloneRepoRequest'
+      responses:
+        "200":
+          description: OK
+    delete:
+      operationId: deleteRepo
+      summary: Delete a repository
+      parameters:
+      - in: path
+        name: username
+        schema:
+            type: string
+        required: true
+        description: The name of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteRepoRequest'
+      responses:
+        "200":
+          description: OK
+
+components:
+  schemas:
+    getReposResponse:
+      type: object
+      properties:
+        repos:
+          type: array
+          items:
+            type: string
+          description: The list of repositories.
+    cloneRepoRequest:
+      type: object
+      required:
+      - repo_url
+      properties:
+        repo_url:
+          type: string
+          description: The URL of the repository to clone.
+          required: true
+    deleteRepoRequest:
+      type: object
+      required:
+      - repo_name
+      properties:
+        repo_name:
+          type: string
+          description: The name of the repository to delete.
+          required: true
